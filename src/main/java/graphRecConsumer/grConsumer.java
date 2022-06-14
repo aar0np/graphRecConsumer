@@ -19,6 +19,7 @@ import org.apache.tinkerpop.gremlin.structure.Edge;
 import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.datastax.dse.driver.api.core.graph.FluentGraphStatement;
+import com.datastax.dse.driver.api.core.graph.ScriptGraphStatement;
 import com.datastax.oss.driver.api.core.CqlSession;
 
 public class grConsumer {
@@ -78,13 +79,13 @@ public class grConsumer {
     	Date timestamp = recommendation.getTimestamp();
     	
     	// create edge in graph
-    	writeRecommendation(userId, movieId, starRating, timestamp);
+    	writeRecommendation(userId, movieId, starRating, timestamp.toString());
     	
     	// exit
     	System.exit(0);
 	}
 
-	public static void writeRecommendation(int userId, int movieId, Double rating, Date timestamp) {
+	public static void writeRecommendation(int userId, int movieId, Double rating, String timestamp) {
 		
 		GraphTraversal<Vertex, Edge> addEdge = g
 				.V().has("User", "user_id", userId).as("userR")
@@ -93,14 +94,11 @@ public class grConsumer {
 					.from("userR").to("movieR")
 					.property("rating",rating)
 					.property("timestamp",timestamp);
-
-		FluentGraphStatement stmt = FluentGraphStatement.newInstance(addEdge);
-		stmt.setGraphName("movies_dev");
-		session.execute(stmt);
-	}
-	
-	private static String convertToJSON(String message) {
-		return new Gson().toJson(message);
+		
+		FluentGraphStatement stmt = FluentGraphStatement.newInstance(addEdge)
+				.setGraphName("movies_dev");
+				
+		session.execute(stmt);	
 	}
 	
 	private static PulsarClient initializeClient(String topic) {
