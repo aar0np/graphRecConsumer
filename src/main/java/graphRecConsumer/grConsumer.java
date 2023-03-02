@@ -23,6 +23,10 @@ import com.datastax.dse.driver.api.core.graph.ScriptGraphStatement;
 import com.datastax.oss.driver.api.core.CqlSession;
 
 public class grConsumer {
+	
+	private static final String DSE_ENDPOINT = System.getenv("DSE_ENDPOINT");
+	private static final String DSE_DC = System.getenv("DSE_DATACENTER");
+
 	private static final String SERVICE_URL = System.getenv("ASTRA_STREAM_URL");
 	private static final String YOUR_PULSAR_TOKEN = System.getenv("ASTRA_STREAM_TOKEN");
 	private static final String STREAMING_TENANT = System.getenv("ASTRA_STREAM_TENANT");
@@ -34,7 +38,7 @@ public class grConsumer {
 	
 	public static void main(String[] args) {
 		// Connect to DSE Graph
-		DseDAL dse = new DseDAL();
+		DseDAL dse = new DseDAL(DSE_ENDPOINT, DSE_DC);
 		session = dse.getSession();
 		
 		// Create Pulsar/Astra Streaming client
@@ -56,7 +60,7 @@ public class grConsumer {
     			
     			if (msg != null) {
     				// Re-enable this ack when going beyond dev
-    				// consumer.acknowledge(msg);
+    				consumer.acknowledge(msg);
     				strMessage = msg.getValue();
     				
     				System.out.println(strMessage);
